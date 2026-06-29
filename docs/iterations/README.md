@@ -7,10 +7,13 @@
 - 规则和约束写入仓库根目录的 `AGENTS.md`，并保持自包含、可执行。
 - 说明、模板、阶段记录、待办和决策写入 `docs/`。
 - `AGENTS.md` 引用必要路径；背景、原因和细节保留在 `docs/`。
+- 总阅读顺序以 [`../README.md`](../README.md) 为准，本文件只说明迭代文档的用途。
 
 本仓库的文档分工如下：
 
 - `docs/roadmap/`：学习路线，回答“学什么、为什么、按什么顺序学”。
+- `docs/reference/`：当前已经生效的跨阶段工程契约。
+- `docs/stages/`：后续阶段指南和设计参考。
 - `docs/notes/`：阶段学习笔记，记录“学到什么、踩过什么坑”。
 - `docs/iterations/`：工程推进计划，记录“当前做到哪、下一步做什么、如何验收”。
 
@@ -28,14 +31,7 @@
 
 ## 接手顺序
 
-涉及阶段推进、计划调整、跨会话接手或较大功能变更时，建议按以下顺序阅读：
-
-1. 仓库根目录 `README.md`
-2. 仓库根目录 `AGENTS.md`
-3. `docs/iterations/STATUS.md`
-4. `docs/roadmap/java-ai-learning-roadmap.md`
-5. 当前阶段迭代文档，例如 `chat-api.md`
-6. `docs/iterations/backlog.md` 和 `docs/iterations/decisions.md`
+涉及阶段推进、计划调整、跨会话接手或较大功能变更时，先按 [`../README.md`](../README.md) 的阅读顺序进入；需要看当前阶段具体任务时，再阅读 `STATUS.md` 和当前阶段迭代文档。
 
 纯局部小改可以只阅读相关文件，仍需完成必要验证和变更说明。
 
