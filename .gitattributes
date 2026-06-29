@@ -1,0 +1,6 @@
+# Windows 批处理脚本需要 CRLF 行尾，由命令解释器要求。
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Maven Wrapper 的 POSIX 脚本使用 LF 行尾。
+mvnw text eol=lf

@@ -101,39 +101,62 @@ vendor = os.environ["VENDOR"]
 ET.register_namespace("", NS)
 
 
-def q(tag):
-    return f"{{{NS}}}{tag}"
+def local_name(tag):
+    # 去掉可能存在的命名空间前缀，按本地名比较，兼容有无命名空间两种文件。
+    return tag.rsplit("}", 1)[-1]
+
+
+def find_child(el, name):
+    if el is None:
+        return None
+    for child in el:
+        if local_name(child.tag) == name:
+            return child
+    return None
+
+
+def find_children(el, name):
+    return [child for child in el if local_name(child.tag) == name] if el is not None else []
 
 
 def text(el):
     return el.text.strip() if el is not None and el.text else ""
 
 
-# 读取已有文件，无法解析时备份后重建，避免静默丢配置。
+def q(tag):
+    return f"{{{NS}}}{tag}"
+
+
+# 读取已有文件，保留其中已有条目。无法解析或根节点不是 toolchains 时备份后重建，不静默丢配置。
 root = None
 if os.path.exists(path):
     try:
-        root = ET.parse(path).getroot()
+        parsed = ET.parse(path).getroot()
+        if local_name(parsed.tag) == "toolchains":
+            root = parsed
+        else:
+            backup = path + ".bak"
+            os.replace(path, backup)
+            print(f"已有 toolchains.xml 根节点异常，已备份到 {backup}", file=sys.stderr)
     except ET.ParseError:
         backup = path + ".bak"
         os.replace(path, backup)
         print(f"已有 toolchains.xml 无法解析，已备份到 {backup}", file=sys.stderr)
-        root = None
 
-if root is None or root.tag != q("toolchains"):
+if root is None:
     root = ET.Element(q("toolchains"))
 
-# 移除同为 JDK 21 的旧条目，保留其他版本。
-for tc in list(root.findall(q("toolchain"))):
-    if text(tc.find(q("type"))) != "jdk":
+# 移除同为 JDK 21 的旧条目，保留其他版本。按本地名匹配，兼容有无命名空间的已有文件。
+for tc in find_children(root, "toolchain"):
+    if text(find_child(tc, "type")) != "jdk":
         continue
-    provides = tc.find(q("provides"))
+    provides = find_child(tc, "provides")
     if provides is None:
         continue
-    if text(provides.find(q("version"))) == version:
+    if text(find_child(provides, "version")) == version:
         root.remove(tc)
 
-# 追加新的 JDK 21 条目。
+# 追加新的 JDK 21 条目，使用标准命名空间。
 tc = ET.SubElement(root, q("toolchain"))
 ET.SubElement(tc, q("type")).text = "jdk"
 provides = ET.SubElement(tc, q("provides"))
