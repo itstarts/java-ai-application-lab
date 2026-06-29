@@ -19,13 +19,21 @@
 - 已导入完整学习路线：`docs/roadmap/java-ai-learning-roadmap.md`。
 - 已明确 `AGENTS.md` 与 `docs/` 的分工：硬约束写入 `AGENTS.md`，路线、模板、状态、待办和决策记录写入 `docs/`。
 - 已用显式 JDK 21 验证 Maven 测试通过。
+- 已通过 Maven Wrapper 和 Toolchains 固定 JDK 21 编译和测试，本机默认 JDK 无需切换。
 
 ## 验证记录
 
-验证时显式指定 Homebrew JDK 21：
+构建通过 Maven Toolchains 将编译和测试固定运行在 JDK 21。首次配置工具链：
 
 ```bash
-JAVA_HOME=/usr/local/opt/openjdk@21 PATH="/usr/local/opt/openjdk@21/bin:$PATH" mvn -f backend/pom.xml test
+backend/scripts/setup-toolchains.sh
+```
+
+在默认 shell 中直接运行测试：
+
+```bash
+cd backend
+./mvnw test
 ```
 
 结果：
@@ -34,6 +42,8 @@ JAVA_HOME=/usr/local/opt/openjdk@21 PATH="/usr/local/opt/openjdk@21/bin:$PATH" m
 BUILD SUCCESS
 Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
 ```
+
+测试运行在 JDK 21，由日志 `Starting ChatControllerTest using Java 21.0.11` 确认。
 
 ## 尚未完成
 
@@ -61,6 +71,6 @@ Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
 
 ## 当前风险
 
-- 运行 Maven 前需要显式设置 `JAVA_HOME` 指向 JDK 21。
+- 首次 clone 后需运行 `backend/scripts/setup-toolchains.sh` 生成本机 `~/.m2/toolchains.xml`，构建依赖该文件定位 JDK 21。
 - 当前 `/api/chat` 仍是 stub，不调用外部模型。
 - 当前 CI 只覆盖 Maven 测试，后续需要随项目演进增加更完整的构建、集成测试和评测步骤。

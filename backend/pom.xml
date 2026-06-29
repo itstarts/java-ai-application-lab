@@ -18,6 +18,8 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- toolchain 按主版本范围匹配，兼容本地 "21" 与 CI 写入的完整版本（如 21.0.x）。 -->
+        <java.toolchain.version>[21,22)</java.toolchain.version>
         <spring-boot.version>3.5.0</spring-boot.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -54,5 +56,27 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <!-- 通过 toolchain 把编译和测试固定运行在 JDK 21，Maven 自身可由 JDK 11 启动。 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <toolchains>
+                        <jdk>
+                            <version>${java.toolchain.version}</version>
+                        </jdk>
+                    </toolchains>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

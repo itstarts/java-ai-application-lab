@@ -96,63 +96,55 @@ data/
 
 ### 环境要求
 
-- JDK 21
-- Maven 3.9+
+- 已安装 JDK 21（用于编译和运行）
+- Maven Wrapper 已随仓库提供，无需单独安装 Maven
 
-当前本机如果仍是 JDK 11，执行 Maven 会报：
+构建通过 Maven Toolchains 把编译和测试固定运行在 JDK 21。Maven Wrapper 自身可由 JDK 11 或更高版本启动，因此本机默认 JDK 不需要切换到 21，也不需要为每个终端设置 `JAVA_HOME`。
 
-```text
-错误: 不支持发行版本 21
-```
+### 首次配置 JDK 21 工具链
 
-需要先安装并切换到 JDK 21。
-
-当前终端可显式指定已安装的 JDK 21。
-
-Homebrew 安装的 JDK 21：
+首次 clone 后运行一次，向本机 `~/.m2/toolchains.xml` 声明 JDK 21 的安装位置：
 
 ```bash
-export JAVA_HOME=/usr/local/opt/openjdk@21
-export PATH="$JAVA_HOME/bin:$PATH"
-java -version
+backend/scripts/setup-toolchains.sh
 ```
 
-如果 JDK 21 已注册到 macOS JavaVirtualMachines：
+脚本自动探测 JDK 21 的安装路径，兼容 Intel 与 Apple Silicon 的 Homebrew 前缀。也可通过 `JDK21_HOME` 显式指定：
 
 ```bash
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-export PATH="$JAVA_HOME/bin:$PATH"
-java -version
+JDK21_HOME=/path/to/jdk-21 backend/scripts/setup-toolchains.sh
 ```
+
+未安装 JDK 21 时，Homebrew 安装方式：
+
+```bash
+brew install openjdk@21
+```
+
+`~/.m2/toolchains.xml` 含本机绝对路径，属于机器本地配置，不进版本库。
 
 ### 运行测试
 
 从仓库根目录执行：
 
 ```bash
-mvn -f backend/pom.xml test
+backend/mvnw -f backend/pom.xml test
 ```
 
 或进入后端工程目录执行：
 
 ```bash
 cd backend
-mvn test
+./mvnw test
 ```
 
 ### 启动第一个应用
 
-从仓库根目录执行：
-
-```bash
-mvn -f backend/pom.xml -pl apps/ai-chat-api spring-boot:run
-```
-
-或进入后端工程目录执行：
+进入后端工程目录执行：
 
 ```bash
 cd backend
-mvn -pl apps/ai-chat-api spring-boot:run
+./mvnw -pl apps/ai-chat-api spring-boot:run
 ```
 
 健康检查：
