@@ -51,6 +51,9 @@ java-ai-application-lab/
 │       └── ai-chat-api/
 ├── docs/
 │   ├── roadmap/
+│   ├── reference/
+│   ├── stages/
+│   ├── iterations/
 │   └── notes/
 └── prompts/
     └── chat/
@@ -69,20 +72,9 @@ evals/
 data/
 ```
 
-## 阶段命名
+## 学习路线和阶段命名
 
-所有阶段在应用、文档、Prompt、评测、tag 中统一命名。
-
-| 阶段 | 名称 | 主要交付物 |
-|---|---|---|
-| 01 | `chat` | Chat API 骨架和流式模型接入 |
-| 02 | `structured-output` | JSON 抽取、结构化输出和校验 |
-| 03 | `rag` | 基于 pgvector 的知识库问答和引用来源 |
-| 04 | `tool-calling` | 带权限、审计和确认机制的工具调用 |
-| 05 | `agent-workflow` | 有状态 Agent 工作流和人工检查点 |
-| 06 | `evaluation` | 评测集、指标和回归报告 |
-| 07 | `security` | Prompt injection、数据边界和访问控制 |
-| 08 | `observability` | 模型调用链路、成本、延迟和监控 |
+阶段命名和阶段顺序以 [`docs/roadmap/java-ai-learning-roadmap.md`](docs/roadmap/java-ai-learning-roadmap.md) 为准。文档阅读顺序见 [`docs/README.md`](docs/README.md)。
 
 ### 阶段与应用的关系
 
@@ -173,11 +165,8 @@ cp .env.example .env
 
 ## 学习路线
 
-完整学习路线见：
-
-```text
-docs/roadmap/java-ai-learning-roadmap.md
-```
+完整学习路线见 [`docs/roadmap/java-ai-learning-roadmap.md`](docs/roadmap/java-ai-learning-roadmap.md)。
+项目演进路线见 [`docs/roadmap/project-evolution-roadmap.md`](docs/roadmap/project-evolution-roadmap.md)。
 
 ## AI 辅助开发规范
 
@@ -189,7 +178,7 @@ AGENTS.md
 
 关键规则：
 
-- API Key、Token、真实用户数据、真实简历、真实订单或内部文档只保留在本地或受控密钥系统中。
+- 数据边界以 [`docs/reference/engineering-baseline.md`](docs/reference/engineering-baseline.md) 为准。
 - Prompt 修改必须进入 `prompts/` 并说明版本变化。
 - RAG 变更需要记录召回率、拒答率和引用准确率。
 - Tool Calling 的写操作必须保留权限校验、幂等、审计和人工确认。
