@@ -20,7 +20,9 @@ jobs:
           java-version: '21'
           cache: maven
           cache-dependency-path: backend/**/pom.xml
+        # setup-java 在指定 java-version 时自动写入 ~/.m2/toolchains.xml，
+        # 供 maven-toolchains-plugin 匹配 JDK 21。
 
       - name: Test
         working-directory: backend
-        run: mvn -B test
+        run: ./mvnw -B test

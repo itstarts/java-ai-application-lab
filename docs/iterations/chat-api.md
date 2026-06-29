@@ -57,23 +57,24 @@
 
 ## 验证命令
 
-当前终端可显式指定 JDK 21：
+首次配置 JDK 21 工具链：
 
 ```bash
-export JAVA_HOME=/usr/local/opt/openjdk@21
-export PATH="$JAVA_HOME/bin:$PATH"
+backend/scripts/setup-toolchains.sh
 ```
 
 运行测试：
 
 ```bash
-mvn -f backend/pom.xml test
+cd backend
+./mvnw test
 ```
 
 启动应用：
 
 ```bash
-mvn -f backend/pom.xml -pl apps/ai-chat-api spring-boot:run
+cd backend
+./mvnw -pl apps/ai-chat-api spring-boot:run
 ```
 
 健康检查：
