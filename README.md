@@ -109,7 +109,7 @@ data/
 backend/scripts/setup-toolchains.sh
 ```
 
-脚本自动探测 JDK 21 的安装路径，兼容 Intel 与 Apple Silicon 的 Homebrew 前缀。也可通过 `JDK21_HOME` 显式指定：
+脚本只新增或更新 JDK 21 条目，保留文件中其他 JDK 版本的 toolchain。脚本自动探测 JDK 21 的安装路径，兼容 Intel 与 Apple Silicon 的 Homebrew 前缀。也可通过 `JDK21_HOME` 显式指定：
 
 ```bash
 JDK21_HOME=/path/to/jdk-21 backend/scripts/setup-toolchains.sh

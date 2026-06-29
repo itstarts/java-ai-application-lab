@@ -71,6 +71,6 @@ Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
 
 ## 当前风险
 
-- 首次 clone 后需运行 `backend/scripts/setup-toolchains.sh` 生成本机 `~/.m2/toolchains.xml`，构建依赖该文件定位 JDK 21。
+- 首次 clone 后需运行 `backend/scripts/setup-toolchains.sh` 更新本机 `~/.m2/toolchains.xml`，脚本保留其他 JDK 版本条目，只新增或更新 JDK 21；构建依赖该文件定位 JDK 21。
 - 当前 `/api/chat` 仍是 stub，不调用外部模型。
 - 当前 CI 只覆盖 Maven 测试，后续需要随项目演进增加更完整的构建、集成测试和评测步骤。
