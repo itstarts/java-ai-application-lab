@@ -31,7 +31,7 @@
 | 首个应用 | `backend/apps/ai-chat-api` |
 | CI | GitHub Actions |
 
-真实模型 Provider 优先按 OpenAI-compatible API 接入，本地实验可使用 Ollama。当前 `ai-chat-api` 仍是本地 mock echo 实现，只返回本地响应；阶段 1 默认先使用 `mock` Provider 完成配置、错误处理和测试闭环。
+真实模型 Provider 优先按 OpenAI-compatible API 接入，本地实验可使用 Ollama。当前 `ai-chat-api` 默认仍使用本地 `mock` Provider；配置 `AI_PROVIDER=openai` 且提供必要环境变量后，会通过兼容 Chat Completions 接口执行非流式调用。
 
 ## 目录结构
 
@@ -170,7 +170,7 @@ cp .env.example .env
 
 当前阶段默认使用 `AI_PROVIDER=mock` 和 `AI_CHAT_MODEL=mock-chat`，聊天模型字段统一为 `AI_CHAT_MODEL`，模型请求超时字段统一为 `AI_REQUEST_TIMEOUT`。`AI_PROVIDER` 表示供应商或适配器标识，例如 `mock`、`openai`、`ollama`；OpenAI-compatible 是协议形态，不直接作为默认 Provider 值。`SERVER_PORT` 使用 Spring Boot 约定配置服务端口。真实模型调用会产生费用和数据外发风险，应在 mock/stub Provider、配置缺失和错误映射测试通过后再启用。
 
-OpenAI-compatible Provider 的配置契约见 [`docs/iterations/chat-api.md`](docs/iterations/chat-api.md)。占位配置约定如下，当前默认仍启用 `mock` Provider；`openai` Provider 已覆盖本地配置缺失校验，HTTP 调用路径按后续阶段继续实现：
+OpenAI-compatible Provider 的配置契约见 [`docs/iterations/chat-api.md`](docs/iterations/chat-api.md)。占位配置约定如下，当前默认仍启用 `mock` Provider；`openai` Provider 已实现非流式 Chat Completions 成功路径，外部错误映射继续按迭代文档推进：
 
 ```bash
 AI_PROVIDER=openai

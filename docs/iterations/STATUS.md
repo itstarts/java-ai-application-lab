@@ -62,7 +62,16 @@
   - 新增 `provider.openai.OpenAiChatProvider`，`providerName()` 返回 `openai`。
   - `ChatProviderProperties` 已绑定 `AI_BASE_URL` / `ai.base-url` 和 `AI_API_KEY` / `ai.api-key`，并保留 `AI_PROVIDER`、`AI_CHAT_MODEL`、`AI_REQUEST_TIMEOUT` 现有语义。
   - `AI_PROVIDER=openai` 时，缺少或空白的 `AI_BASE_URL`、`AI_API_KEY` 会通过现有 Provider 异常映射返回统一 `AI_PROVIDER_ERROR`。
-  - 当前 openai Provider 只执行本地配置校验；HTTP 请求构造、发送、成功响应解析和外部错误映射在后续 TDD 任务实现。
+  - 当前 openai Provider 已在配置有效时执行非流式 HTTP 成功路径；外部错误映射在后续 TDD 任务实现。
+- 已落地 OpenAI-compatible Provider 的非流式 HTTP 成功路径：
+  - `OpenAiChatProvider` 通过项目自有 `OpenAiChatHttpClient` 契约发送请求，生产实现使用 JDK `HttpClient`。
+  - 测试使用可控 HTTP client 替身，不访问真实外部模型服务，不使用真实密钥，不引入 Spring AI。
+  - 请求地址按 `{AI_BASE_URL}/chat/completions` 拼接，并覆盖 `AI_BASE_URL` 尾部 `/` 规范化。
+  - 请求头包含 `Content-Type: application/json` 和 `Authorization: Bearer <AI_API_KEY>`，普通日志和测试输出不暴露 API Key / Authorization。
+  - 请求体包含 `model` 和当前用户消息 `messages=[{role:user, content:<message>}]`。
+  - `AI_REQUEST_TIMEOUT` 进入 HTTP client 调用契约。
+  - 成功响应读取 `choices[0].message.content`，映射为 `ProviderChatResponse.content`。
+  - Controller 层在 `AI_PROVIDER=openai` 成功路径下返回 `provider=openai`、`model`、`content`、`traceId`。
 - 已在 `AGENTS.md` 增加通用 Git 协作规则：Agent 可以建议提交或推送时机，执行 `commit`、`push`、`tag`、`release` 仍需用户明确指令。
 - 已在 `AGENTS.md` 补充学习仓库的 PR/MR 使用边界：多数阶段 checkpoint 可直接提交到 `main` 并打 tag，远端评审、跨模块、数据模型或高回滚成本变更再建议开发分支和合并请求。
 - 已重写 `AGENTS.md` 的 `Git 协作` 小节，明确本仓库以 `main + 阶段 tag` 为主策略，并补充阶段 tag 建议和跨 Agent 接手阅读要求。
@@ -360,9 +369,196 @@ Tests run: 39, Failures: 0, Errors: 0, Skipped: 0
 - 最终评审结论：Ready to merge? Yes；Critical、Important、Minor 问题均为 0。
 - 最终评审确认当前实现只做本地配置校验，未引入 Spring AI、HTTP client 或真实外部调用路径，文档已同步当前边界和下一片入口。
 
+2026-07-02 OpenAI-compatible Provider 非流式 HTTP 成功路径验证：
+
+TDD RED 验证：
+
+```bash
+cd backend
+./mvnw -pl apps/ai-chat-api -Dtest=OpenAiChatProviderTest,OpenAiProviderSuccessTest,ChatServiceOpenAiConfigurationTest test
+```
+
+结果：
+
+```text
+BUILD FAILURE
+找不到符号: 类 OpenAiChatHttpClient / OpenAiChatHttpRequest / OpenAiChatHttpResponse
+```
+
+TDD GREEN 定向验证：
+
+```bash
+cd backend
+./mvnw -pl apps/ai-chat-api -Dtest=OpenAiChatProviderTest,OpenAiProviderSuccessTest,ChatServiceOpenAiConfigurationTest test
+```
+
+结果：
+
+```text
+BUILD SUCCESS
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+```
+
+完整验证：
+
+```bash
+cd backend
+./mvnw test
+```
+
+结果：
+
+```text
+BUILD SUCCESS
+Tests run: 42, Failures: 0, Errors: 0, Skipped: 0
+```
+
+覆盖范围：
+
+- OpenAI Provider 使用可控 HTTP client 替身覆盖非流式成功路径，不连接外部模型服务。
+- 请求地址按 `{AI_BASE_URL}/chat/completions` 拼接，并覆盖尾部 `/` 规范化。
+- 请求头包含 `Content-Type: application/json` 和 `Authorization: Bearer <AI_API_KEY>`，断言失败消息不输出 header 值。
+- 请求体包含 `model` 和当前用户消息 `messages=[{role:user, content:<message>}]`。
+- `AI_REQUEST_TIMEOUT` 进入 HTTP client 调用契约。
+- 成功响应读取 `choices[0].message.content` 并映射为 `ProviderChatResponse.content`。
+- Controller 层在 `AI_PROVIDER=openai` 成功路径下返回 `provider=openai`、`model`、`content`、`traceId`。
+- 成功路径日志捕获测试确认普通日志不包含测试 API Key、Authorization header 和完整用户输入。
+
+文档和空白检查：
+
+```bash
+git diff --check
+```
+
+结果：无输出。
+
+敏感信息检查：
+
+```bash
+rg -n "sk-[A-Za-z0-9]{20,}|AI_API_KEY=.*sk-|OPENAI_API_KEY=.*sk-|Authorization: Bearer sk-" . \
+  --glob '!docs/iterations/STATUS.md'
+```
+
+结果：无真实密钥命中。
+
+Spring AI 依赖检查：
+
+```bash
+rg -n "spring-ai|org\\.springframework\\.ai" backend
+```
+
+结果：无命中。
+
+独立评审：
+
+- Codex 子代理 Pauli 基于当前代码、文档 diff 和未跟踪新增文件完成只读评审。
+- 评审结论：Critical=0、Important=0、Minor=0；可继续。
+- 评审确认请求构造、尾部 `/` 规范化、JDK `HttpClient` 适配、成功响应映射、可控 HTTP client 替身测试、Controller openai 成功路径、文档同步、敏感信息检查和 Spring AI 依赖检查均满足本次验收目标。
+
+2026-07-02 OpenAI-compatible Provider 职责拆分验证：
+
+本次整理保持行为不变，将 `OpenAiChatProvider` 收敛为 Provider 编排类：
+
+- `OpenAiChatCompletionRequestFactory` 负责 `{AI_BASE_URL}/chat/completions` 路径规范化、请求头和请求体构造。
+- `OpenAiChatCompletionResponseMapper` 负责 `choices[0].message.content` 提取和空响应映射。
+- `provider.openai.dto` 放置 OpenAI Chat Completions 请求 DTO。
+- `OpenAiChatProvider` 保留配置校验、HTTP 调用编排和异常映射。
+
+TDD RED 验证：
+
+```bash
+cd backend
+./mvnw -pl apps/ai-chat-api -Dtest=OpenAiChatCompletionRequestFactoryTest,OpenAiChatCompletionResponseMapperTest test
+```
+
+结果：
+
+```text
+BUILD FAILURE
+找不到符号: 类 OpenAiChatCompletionResponseMapper
+```
+
+TDD GREEN 定向验证：
+
+```bash
+cd backend
+./mvnw -pl apps/ai-chat-api -Dtest=OpenAiChatCompletionRequestFactoryTest,OpenAiChatCompletionResponseMapperTest,OpenAiChatProviderTest,OpenAiProviderSuccessTest,ChatServiceOpenAiConfigurationTest test
+```
+
+结果：
+
+```text
+BUILD SUCCESS
+Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+```
+
+完整验证：
+
+```bash
+cd backend
+./mvnw test
+```
+
+结果：
+
+```text
+BUILD SUCCESS
+Tests run: 46, Failures: 0, Errors: 0, Skipped: 0
+```
+
+检查结果：
+
+- `git diff --check`：无输出。
+- 敏感信息扫描：无真实密钥命中。
+- Spring AI 依赖扫描：无命中。
+
+2026-07-02 项目规则与 `package-info.java` 收敛验证：
+
+本次将 `AGENTS.md` 的测试边界草稿收敛为通用工程规则：
+
+- 生产代码结构优先服务真实运行语义、职责边界和长期维护。
+- 测试替身优先替换真实生产边界；生产代码中的新增边界必须具备生产语义。
+- 需要构造注入的 Spring Bean 优先使用 Lombok `@RequiredArgsConstructor`；只有类自身确实产生日志时才使用 `@Slf4j`。
+- `package-info.java` 只在承载有维护价值的包级 Javadoc、包级注解或明确包边界契约时创建或保留。
+
+本次清理后，`ai-chat-api` 主代码只保留 `provider/package-info.java`，用于说明应用层 Provider 契约和厂商实现隔离边界；删除仅作目录说明或局部启用 `@NonNullApi` 的包级文件。
+
+最终评审反馈已处理：
+
+- `README.md` 已更新当前 Provider 状态：默认使用本地 `mock` Provider，配置 `AI_PROVIDER=openai` 后执行兼容 Chat Completions 的非流式调用。
+- `OpenAiChatHttpRequest.toString()` 已默认脱敏 URL、headers 和 body，避免调试输出泄漏 Authorization、API Key、Base URL 或用户消息；新增单元测试覆盖该行为。
+- Codex 子代理 Heisenberg 基于最终 diff 完成只读复审，结论：Ready；Critical=0、Important=0、Minor=0。
+
+规则写入前独立评审：
+
+- Codex 子代理 Archimedes 基于候选规则和当前包结构完成只读评审。
+- 评审结论：建议写入 `AGENTS.md`；Critical=0。
+- 已按 Important 建议收紧规则：明确新增边界约束限定在生产代码，包级 Javadoc 需有维护价值。
+
+完整验证：
+
+```bash
+cd backend
+./mvnw test
+```
+
+结果：
+
+```text
+BUILD SUCCESS
+Tests run: 47, Failures: 0, Errors: 0, Skipped: 0
+```
+
+检查结果：
+
+- `git diff --check`：无输出。
+- 敏感信息扫描：无真实密钥命中。
+- Spring AI 依赖扫描：无命中。
+- `package-info.java` 扫描：主代码仅剩 `provider/package-info.java`。
+- `NonNullApi` 扫描：无命中。
+
 ## 尚未完成
 
-- 尚未实现真实模型 HTTP 调用成功路径。
 - 尚未覆盖 OpenAI-compatible Provider 的外部超时、429、空响应、非 JSON、外部 4xx 和 5xx 错误映射。
 - 尚未引入 Spring AI。
 - 尚未实现流式输出。
@@ -377,16 +573,16 @@ Tests run: 39, Failures: 0, Errors: 0, Skipped: 0
 
 下一步建议：
 
-1. 基于 `docs/iterations/chat-api.md` 中的实现前契约，用 TDD 实现 OpenAI-compatible Provider 的非流式 HTTP 调用成功路径。
-2. 成功路径稳定后，继续用本地 stub 覆盖 OpenAI-compatible Provider 的外部错误映射。
+1. 继续用本地 stub 或可控 HTTP client 替身覆盖 OpenAI-compatible Provider 的外部错误映射。
+2. 后续再进入流式输出、Prompt 版本加载和结构化输出实验。
 3. 继续保持当前阶段不引入 Spring AI；后续引入时作为 Provider 实现或增强项接入。
 
 ## 当前风险
 
 - 首次 clone 后需运行 `backend/scripts/setup-toolchains.sh` 更新本机 `~/.m2/toolchains.xml`，脚本保留其他 JDK 版本条目，只新增或更新 JDK 21；构建依赖该文件定位 JDK 21。
 - 当前 `/api/chat` 仍使用本地 `mock` Provider，不调用外部模型。
-- `AI_PROVIDER=openai` 当前只执行本地配置校验；HTTP 请求构造和发送在后续任务实现。
-- 真实 Provider 会把请求消息发送到外部模型服务；接入和测试默认使用本地 stub，不使用真实密钥或真实业务数据。
+- `AI_PROVIDER=openai` 在配置完整时会通过 Chat Completions 兼容接口发送当前用户消息；本地测试默认使用可控 HTTP client 替身，不使用真实密钥或真实业务数据。
+- 外部错误映射仍待补齐，当前非成功 HTTP 状态、非 JSON 和 IO 异常先按 Provider 通用错误处理。
 - 当前 CI 只覆盖 Maven 测试，后续需要随项目演进增加更完整的构建、集成测试和评测步骤。
 - 阶段 6/7/8 已完成重映射：旧 `evaluation`、`security`、`observability` 不再作为独立阶段 slug；正文中出现这些词时按普通技术概念理解，阶段 taxonomy 以 `docs/roadmap/java-ai-learning-roadmap.md` 为准。
 - Codex worktree 环境不会自动携带本机 `.env`，首次构建也可能需要下载 Maven 分发版和依赖；使用 worktree 开发前应先完成 JDK 21 toolchain 和依赖准备。
