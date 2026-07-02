@@ -21,7 +21,7 @@ public class ChatController {
     @PostMapping("/api/chat")
     public ChatResponse chat(@Valid @RequestBody ChatRequest request) {
         String normalizedMessage = request.message().trim();
-        return new ChatResponse("stub", "Echo: " + normalizedMessage);
+        return new ChatResponse("mock", "Echo: " + normalizedMessage);
     }
 
     public record ChatRequest(

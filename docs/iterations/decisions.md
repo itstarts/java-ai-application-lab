@@ -42,6 +42,17 @@
 - Java 后端应用可以先围绕稳定 HTTP API 和配置管理建立工程能力。
 - 本地模型适合后续成本、隐私和离线实验；第一阶段以 OpenAI-compatible HTTP API 为主。
 
+## 2026-07-01：阶段 1 采用 mock-first Provider 策略
+
+决策：阶段 1 先实现项目自己的应用层 Provider 抽象和 mock/stub Provider，默认 `AI_PROVIDER=mock`，聊天模型字段统一为 `AI_CHAT_MODEL`。真实 OpenAI-compatible Provider 在 mock/stub Provider、配置缺失和错误映射测试稳定后接入。当前阶段不直接引入 Spring AI；后续引入时作为 Provider 实现或增强项接入，业务层仍依赖项目自己的 Provider 接口。
+
+原因：
+
+- mock/stub Provider 能让本地开发和 CI 不依赖真实 API Key、外部网络、模型额度和供应商稳定性。
+- 先稳定配置、错误结构、trace 字段和日志脱敏，再接入真实模型，可以降低费用和数据外发风险。
+- `AI_PROVIDER` 使用具体供应商或适配器标识，避免把 OpenAI-compatible 协议形态误当成具体 Provider。
+- 保留 Spring AI 接入空间，同时避免当前阶段过早引入框架依赖和版本选择成本。
+
 ## 2026-06-29：仓库文档作为工程权威来源
 
 决策：`java-ai-application-lab` 仓库内的 `docs/` 是工程文档权威来源；个人知识库或飞书中的副本只用于阅读和导入。

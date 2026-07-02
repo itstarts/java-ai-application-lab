@@ -26,7 +26,7 @@
 |---|---|
 | Web 框架 | Spring Boot 3.x |
 | Java 版本 | Java 21 |
-| AI 抽象 | Spring AI ChatClient |
+| AI 抽象 | 项目应用层 Provider 抽象；后续接入 Spring AI ChatClient |
 | 备选 AI 抽象 | LangChain4j AI Services |
 | 普通接口 | Spring MVC |
 | 流式输出 | SSE，必要时再考虑 WebFlux |
@@ -35,6 +35,8 @@
 | 测试 | JUnit 5、MockWebServer 或 WireMock |
 
 Spring AI 当前提供了面向 Spring 生态的 `ChatClient` 抽象，适合学习阶段先接入普通调用和流式调用。文档中建议优先依赖稳定抽象，避免业务代码直接绑定具体模型供应商类。
+
+当前迭代先落地项目自己的应用层 Provider 抽象和 mock/stub Provider，不直接引入 Spring AI。后续引入 Spring AI 时，作为 Provider 实现或增强项接入，业务层仍依赖项目自己的 Provider 接口。
 
 ## 3. 推荐模块结构
 
@@ -261,12 +263,14 @@ Provider 内部可以使用 Spring AI `ChatClient`。业务层只依赖自己的
 `.env` 示例只放本地：
 
 ```bash
-AI_PROVIDER=openai-compatible
-AI_BASE_URL=https://api.example.com/v1
-AI_API_KEY=replace-with-local-secret
-AI_CHAT_MODEL=example-chat-model
+AI_PROVIDER=mock
+AI_BASE_URL=
+AI_API_KEY=replace-with-your-local-secret
+AI_CHAT_MODEL=mock-chat
 AI_REQUEST_TIMEOUT=30s
 ```
+
+真实 OpenAI-compatible Provider 接入时使用具体供应商或适配器标识，例如 `AI_PROVIDER=openai`，并配置对应的 `AI_BASE_URL`、`AI_API_KEY` 和 `AI_CHAT_MODEL`。OpenAI-compatible 是协议形态，不作为默认 Provider 值。
 
 `application.yml` 示例：
 
@@ -282,6 +286,8 @@ chat:
   max-input-tokens: 6000
   max-output-tokens: 1000
 ```
+
+Spring Boot 默认不会自动读取仓库根目录的 `.env` 文件。当前阶段可由本地 shell、IDE 运行配置、容器环境或后续显式配置加载机制把这些值注入为环境变量。
 
 规则：
 

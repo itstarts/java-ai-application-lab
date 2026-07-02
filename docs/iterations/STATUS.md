@@ -1,6 +1,6 @@
 # 当前状态
 
-更新时间：2026-06-30
+更新时间：2026-07-02
 
 ## 已完成
 
@@ -12,6 +12,7 @@
   - `POST /api/chat`
   - 基础请求校验
   - 校验错误的 JSON Problem Detail 响应
+- 当前仓库已存在 `ai-chat-api` 本地 mock echo 代码和 Controller 测试；后续开发是在现有骨架上迭代，不是从空项目开始。
 - 已创建中文 `README.md`。
 - 已创建中文 `AGENTS.md`。
 - 已创建 GitHub Actions 构建配置。
@@ -34,16 +35,35 @@
   - `docs/stages/stage-07-production-cost-governance.md`
   - `docs/stages/stage-08-model-local-inference.md`
 - 已明确仓库内 `docs/` 是工程文档权威来源；个人知识库或飞书副本只用于阅读和导入。
+- 已明确阶段 1 前置实现决策：
+  - 先实现项目自己的应用层 Provider 抽象和 mock/stub Provider。
+  - 当前阶段不引入 Spring AI，后续引入时作为 Provider 实现或增强项接入。
+  - 默认 `AI_PROVIDER=mock`，聊天模型环境变量统一使用 `AI_CHAT_MODEL`。
+  - 真实模型调用在 mock/stub Provider、配置缺失和错误映射测试稳定后再接入。
+- 已在 `AGENTS.md` 增加通用 Git 协作规则：Agent 可以建议提交或推送时机，执行 `commit`、`push`、`tag`、`release` 仍需用户明确指令。
 
 ## 验证记录
 
-构建通过 Maven Toolchains 将编译和测试固定运行在 JDK 21。首次配置工具链：
+构建通过 Maven Toolchains 将编译和测试固定运行在 JDK 21。
+
+该脚本需要本机已安装 `python3`，用于安全合并 `~/.m2/toolchains.xml`。
+
+2026-07-01 验证：
+
+先运行工具链配置：
 
 ```bash
 backend/scripts/setup-toolchains.sh
 ```
 
-在默认 shell 中直接运行测试：
+结果：
+
+```text
+已更新 /Users/zyy/.m2/toolchains.xml
+JDK 21 Home：/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+```
+
+再运行测试：
 
 ```bash
 cd backend
@@ -57,7 +77,15 @@ BUILD SUCCESS
 Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
 ```
 
-测试运行在 JDK 21，由日志 `Starting ChatControllerTest using Java 21.0.11` 确认。
+测试运行在 JDK 21，由日志 `Starting ChatControllerTest using Java 21.0.11` 和 `Toolchain in maven-surefire-plugin: JDK[/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home]` 确认。
+
+2026-07-02 文档检查：
+
+```bash
+git diff --check
+```
+
+结果：无输出。
 
 ## 尚未完成
 
@@ -76,12 +104,14 @@ Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
 下一步建议：
 
 1. 为 `ai-chat-api` 增加模型 Provider 抽象。
-2. 明确默认 OpenAI-compatible Provider 的环境变量命名和错误处理策略。
-3. 补充 Provider 配置缺失和 mock provider 的测试。
+2. 增加 mock/stub Provider，并补充正常返回、配置缺失和错误映射测试。
+3. 对齐统一错误响应结构，补齐基础 traceId 和日志脱敏字段。
+4. 在上述测试稳定后，再实现 OpenAI-compatible Provider。
 
 ## 当前风险
 
 - 首次 clone 后需运行 `backend/scripts/setup-toolchains.sh` 更新本机 `~/.m2/toolchains.xml`，脚本保留其他 JDK 版本条目，只新增或更新 JDK 21；构建依赖该文件定位 JDK 21。
-- 当前 `/api/chat` 仍是 stub，不调用外部模型。
+- 当前 `/api/chat` 仍是本地 mock echo 实现，不调用外部模型。
 - 当前 CI 只覆盖 Maven 测试，后续需要随项目演进增加更完整的构建、集成测试和评测步骤。
 - 阶段 6/7/8 已完成重映射：旧 `evaluation`、`security`、`observability` 不再作为独立阶段 slug；正文中出现这些词时按普通技术概念理解，阶段 taxonomy 以 `docs/roadmap/java-ai-learning-roadmap.md` 为准。
+- Codex worktree 环境不会自动携带本机 `.env`，首次构建也可能需要下载 Maven 分发版和依赖；使用 worktree 开发前应先完成 JDK 21 toolchain 和依赖准备。

@@ -31,7 +31,7 @@
 | 首个应用 | `backend/apps/ai-chat-api` |
 | CI | GitHub Actions |
 
-默认模型服务约定为 OpenAI-compatible API，本地实验可使用 Ollama。当前 `ai-chat-api` 仍是 stub 实现，只返回本地响应。
+真实模型 Provider 优先按 OpenAI-compatible API 接入，本地实验可使用 Ollama。当前 `ai-chat-api` 仍是本地 mock echo 实现，只返回本地响应；阶段 1 默认先使用 `mock` Provider 完成配置、错误处理和测试闭环。
 
 ## 目录结构
 
@@ -89,6 +89,7 @@ data/
 ### 环境要求
 
 - 已安装 JDK 21（用于编译和运行）
+- 已安装 `python3`（`backend/scripts/setup-toolchains.sh` 用于安全合并 Maven Toolchains XML）
 - Maven Wrapper 已随仓库提供，无需单独安装 Maven
 
 构建通过 Maven Toolchains 把编译和测试固定运行在 JDK 21。Maven Wrapper 自身可由 JDK 11 或更高版本启动，因此本机默认 JDK 不需要切换到 21，也不需要为每个终端设置 `JAVA_HOME`。
@@ -114,6 +115,8 @@ brew install openjdk@21
 ```
 
 `~/.m2/toolchains.xml` 含本机绝对路径，属于机器本地配置，不进版本库。
+
+如果脚本没有自动识别本机 JDK 21，先确认 `python3` 可用，再通过 `JDK21_HOME` 指向 JDK 21 Home 目录。使用 SDKMAN、asdf 或自定义安装路径时，通常需要显式指定 `JDK21_HOME`。
 
 ### 运行测试
 
@@ -145,7 +148,7 @@ cd backend
 curl http://localhost:8080/health
 ```
 
-Stub 聊天请求：
+Mock 聊天请求：
 
 ```bash
 curl -X POST http://localhost:8080/api/chat \
@@ -161,7 +164,25 @@ curl -X POST http://localhost:8080/api/chat \
 cp .env.example .env
 ```
 
-`.env` 只保留在本地，不提交到版本库。当前阶段只用 `.env.example` 统一后续模型配置的命名约定。
+`.env` 只保留在本地，不提交到版本库。当前阶段只用 `.env.example` 统一后续模型配置的命名约定。Spring Boot 默认不会自动读取仓库根目录的 `.env` 文件；后续接入 Provider 配置时，可由本地 shell、IDE 运行配置、容器环境或显式配置加载机制把 `.env` 中的值注入为环境变量。
+
+当前阶段默认使用 `AI_PROVIDER=mock`，聊天模型字段统一为 `AI_CHAT_MODEL`，模型请求超时字段统一为 `AI_REQUEST_TIMEOUT`。`AI_PROVIDER` 表示供应商或适配器标识，例如 `mock`、`openai`、`ollama`；OpenAI-compatible 是协议形态，不直接作为默认 Provider 值。`SERVER_PORT` 使用 Spring Boot 约定配置服务端口。真实模型调用会产生费用和数据外发风险，应在 mock/stub Provider、配置缺失和错误映射测试通过后再启用。
+
+### Codex worktree 准备
+
+Codex worktree 是独立 checkout。使用 worktree 开发时需要重新确认：
+
+- 已运行 `backend/scripts/setup-toolchains.sh`，或本机 `~/.m2/toolchains.xml` 已包含 JDK 21。
+- Maven Wrapper 和依赖首次运行可能需要联网下载。
+- `.env` 被 `.gitignore` 排除，不会自动进入 worktree。
+
+如果 Codex app 管理的 worktree 确实需要复制本地 `.env`，可在仓库根目录临时创建 `.worktreeinclude` 并写入：
+
+```text
+.env
+```
+
+`.worktreeinclude` 是 Codex app managed worktree 的复制规则，不是标准 Git worktree 功能。只在本机受控环境中使用这种方式，且不要把真实密钥写入版本库或日志。
 
 ## 学习路线
 

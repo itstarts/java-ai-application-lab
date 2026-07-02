@@ -13,7 +13,8 @@
 - 保留 `GET /health`。
 - 完善 `POST /api/chat` 的请求和响应结构。
 - 抽象模型 Provider 接口，先让应用代码不直接绑定具体厂商。
-- 接入 OpenAI-compatible Provider。
+- 先实现 mock/stub Provider，并覆盖正常返回、配置缺失和错误分支测试。
+- 在 mock/stub Provider 稳定后再接入 OpenAI-compatible Provider。
 - 通过环境变量读取 Provider 配置。
 - 增加基础错误处理。
 - 增加模型调用日志，包括 provider、model、耗时和错误信息。
@@ -30,12 +31,14 @@
 - Agent 工作流。
 - 多模型路由。
 - 前端页面。
+- 当前阶段不引入 Spring AI；先保留应用层 Provider 抽象，Spring AI 在后续阶段作为 Provider 实现或增强项接入。
 
 ## 交付物
 
 - 代码：
   - `backend/apps/ai-chat-api` 内的 Chat API 实现。
-  - Provider 抽象和 OpenAI-compatible 实现。
+  - Provider 抽象和 mock/stub Provider 实现。
+  - OpenAI-compatible Provider 在 mock/stub Provider 和错误分支测试稳定后实现。
   - 配置类和错误处理。
 - 文档：
   - 更新 `README.md` 中的本地启动和环境变量说明。
@@ -55,9 +58,21 @@
 - API Key 只通过环境变量提供，不出现在代码、README 示例真实值或日志中。
 - Maven 测试通过。
 
+## 当前实现决策
+
+- Provider 抽象使用项目自己的应用层接口，Controller 只依赖应用服务，不直接依赖具体模型 SDK。
+- 当前阶段默认 Provider 为 `mock`，用于本地开发和 CI 稳定测试。
+- `AI_PROVIDER` 表示供应商或适配器标识，例如 `mock`、`openai`、`ollama`，不使用泛化的协议名表达具体供应商。
+- 聊天模型环境变量统一使用 `AI_CHAT_MODEL`。
+- OpenAI-compatible 是接入协议形态；具体实现应记录实际 `provider` 和 `model`。
+- 真实模型调用必须在 mock/stub Provider、配置缺失和错误映射测试通过后再接入。
+- 接入真实 Provider 前不引入 Spring AI；后续引入 Spring AI 时仍保持业务层依赖项目自己的 Provider 接口。
+
 ## 验证命令
 
 首次配置 JDK 21 工具链：
+
+该脚本需要本机已安装 `python3`，用于安全合并 `~/.m2/toolchains.xml`。
 
 ```bash
 backend/scripts/setup-toolchains.sh
@@ -95,8 +110,9 @@ curl -X POST http://localhost:8080/api/chat \
 
 - Provider 选择放在配置和模型调用层，Controller 只处理 HTTP 交互。
 - 日志记录 provider、model、状态、耗时和错误摘要，Authorization header、API Key 和完整环境变量保持脱敏。
-- OpenAI-compatible 是默认协议约定，仍保留其他兼容服务或本地模型的接入空间。
+- OpenAI-compatible 是协议约定，不直接作为默认 `AI_PROVIDER` 值；默认 `AI_PROVIDER=mock`，真实供应商使用具体标识。
 - 真实模型接入前，应先用 mock/stub 覆盖错误分支。
+- 真实模型调用会产生费用和数据外发风险，接入前需要显式确认模型服务、数据边界、超时、错误映射和日志脱敏。
 
 ## 后续入口
 

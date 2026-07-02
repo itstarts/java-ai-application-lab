@@ -43,6 +43,16 @@
 - Java 服务使用 Java 21 和 Spring Boot。
 - 首次 clone 后必须运行 `backend/scripts/setup-toolchains.sh`，向本机 `~/.m2/toolchains.xml` 写入 JDK 21。未运行脚本或本机没有 JDK 21 时，Maven Toolchains 会找不到匹配 JDK 21，构建会失败。正常配置后，本机默认 `JAVA_HOME` 不需要切到 JDK 21；编译和测试由 Maven Toolchains 固定使用 JDK 21。
 
+## Git 协作
+
+- Agent 可以在合适时机建议用户提交或推送，但不得在没有用户明确指令时执行 `commit`、`push`、`tag`、`release` 或发布相关操作。
+- 当前变更形成独立、可复查的工作单元，相关验证已有证据，受影响文档已同步，且没有未解决的高优先级评审问题时，Agent 应建议用户考虑提交。
+- 继续开发会把无关目标混入同一 diff、显著增加评审难度，或当前变更已达到阶段性接手点时，Agent 应建议用户先提交再继续。
+- 自动化验证失败、关键验证尚未执行、工作区混有未确认的无关变更、存在密钥或临时调试产物，或用户明确要求暂不提交时，Agent 不应建议提交。
+- Agent 只在已有本地提交、目标分支明确、验证证据已记录，且用户需要远端备份、CI、PR 或协作评审时建议推送。
+- 推送到 `main` 或 `master` 需要用户明确指定并确认风险；默认建议使用独立开发分支。
+- 提出提交或推送建议时，Agent 应同时说明变更范围、验证结果、残留风险，以及建议的 commit message、分支或推送目标。
+
 ## 验证
 
 - Java 代码变更后，从 `backend/` 运行最相关的 Maven Wrapper 命令，通常是 `./mvnw test` 或 `./mvnw -pl <module> test`。

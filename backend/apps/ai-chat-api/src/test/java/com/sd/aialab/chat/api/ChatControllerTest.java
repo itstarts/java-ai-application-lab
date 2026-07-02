@@ -26,12 +26,12 @@ class ChatControllerTest {
     }
 
     @Test
-    void chatEchoesMessageInStubMode() throws Exception {
+    void chatEchoesMessageInMockMode() throws Exception {
         mockMvc.perform(post("/api/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"message\":\" hello ai \"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.provider").value("stub"))
+                .andExpect(jsonPath("$.provider").value("mock"))
                 .andExpect(jsonPath("$.content").value("Echo: hello ai"));
     }
 
