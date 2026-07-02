@@ -62,7 +62,7 @@ class ChatServiceTest {
 
     private ChatService chatServiceThrowing(RuntimeException exception) {
         return new ChatService(
-                new ChatProviderProperties("failing-provider", "mock-chat", Duration.ofSeconds(3)),
+                new ChatProviderProperties("failing-provider", "mock-chat", null, null, Duration.ofSeconds(3)),
                 List.of(new ChatProvider() {
                     @Override
                     public String providerName() {

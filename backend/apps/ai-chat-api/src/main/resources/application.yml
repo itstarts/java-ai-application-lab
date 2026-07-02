@@ -1,4 +1,6 @@
 ai:
   provider: ${AI_PROVIDER:mock}
   chat-model: ${AI_CHAT_MODEL:mock-chat}
+  base-url: ${AI_BASE_URL:}
+  api-key: ${AI_API_KEY:}
   request-timeout: ${AI_REQUEST_TIMEOUT:30s}

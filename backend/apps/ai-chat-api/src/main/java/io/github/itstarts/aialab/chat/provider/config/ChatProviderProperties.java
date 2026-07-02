@@ -12,6 +12,8 @@ import java.time.Duration;
 public record ChatProviderProperties(
         String provider,
         String chatModel,
+        String baseUrl,
+        String apiKey,
         @DurationMin(nanos = 1, message = "ai.request-timeout must be positive")
         Duration requestTimeout
 ) {
@@ -23,8 +25,18 @@ public record ChatProviderProperties(
             provider = StringUtils.trim(provider);
         }
         chatModel = StringUtils.trim(chatModel);
+        baseUrl = StringUtils.trim(baseUrl);
+        apiKey = StringUtils.trim(apiKey);
         if (requestTimeout == null) {
             requestTimeout = Duration.ofSeconds(30);
         }
+    }
+
+    @Override
+    public String toString() {
+        String redactedBaseUrl = StringUtils.isBlank(baseUrl) ? "missing" : "<redacted>";
+        String redactedApiKey = StringUtils.isBlank(apiKey) ? "missing" : "<redacted>";
+        return "ChatProviderProperties[provider=%s, chatModel=%s, baseUrl=%s, apiKey=%s, requestTimeout=%s]"
+                .formatted(provider, chatModel, redactedBaseUrl, redactedApiKey, requestTimeout);
     }
 }

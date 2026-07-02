@@ -170,6 +170,18 @@ cp .env.example .env
 
 当前阶段默认使用 `AI_PROVIDER=mock` 和 `AI_CHAT_MODEL=mock-chat`，聊天模型字段统一为 `AI_CHAT_MODEL`，模型请求超时字段统一为 `AI_REQUEST_TIMEOUT`。`AI_PROVIDER` 表示供应商或适配器标识，例如 `mock`、`openai`、`ollama`；OpenAI-compatible 是协议形态，不直接作为默认 Provider 值。`SERVER_PORT` 使用 Spring Boot 约定配置服务端口。真实模型调用会产生费用和数据外发风险，应在 mock/stub Provider、配置缺失和错误映射测试通过后再启用。
 
+OpenAI-compatible Provider 的配置契约见 [`docs/iterations/chat-api.md`](docs/iterations/chat-api.md)。占位配置约定如下，当前默认仍启用 `mock` Provider；`openai` Provider 已覆盖本地配置缺失校验，HTTP 调用路径按后续阶段继续实现：
+
+```bash
+AI_PROVIDER=openai
+AI_BASE_URL=https://api.openai.com/v1
+AI_API_KEY=replace-with-your-local-secret
+AI_CHAT_MODEL=replace-with-supported-chat-model
+AI_REQUEST_TIMEOUT=30s
+```
+
+`AI_BASE_URL` 包含版本前缀，Provider 请求路径会拼接为 `{AI_BASE_URL}/chat/completions`。`AI_API_KEY` 只放在本地 `.env`、shell、IDE 运行配置或容器环境中，不写入普通日志和版本库。
+
 ### Codex worktree 准备
 
 Codex worktree 是独立 checkout。使用 worktree 开发时需要重新确认：
