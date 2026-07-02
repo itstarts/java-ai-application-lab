@@ -4,12 +4,12 @@
 
 ## P0：近期必须处理
 
-- [ ] 接入真实模型 Provider 前，按 `docs/reference/engineering-baseline.md` 落地基础 trace、错误响应、日志脱敏和 Provider 记录字段。
+- [x] 接入真实模型 Provider 前，按 `docs/reference/engineering-baseline.md` 落地基础 trace、错误响应、日志脱敏和 Provider 记录字段。
 - [x] 接入真实模型 Provider 前，确认默认 Provider、环境变量命名和错误处理策略。
-- [ ] 为 `ai-chat-api` 增加 Provider 抽象，让 Controller 通过模型调用接口访问具体服务。
+- [x] 为 `ai-chat-api` 增加 Provider 抽象，让 Controller 通过模型调用接口访问具体服务。
 - [ ] README 中在真实模型接入后补充最小可运行配置示例。
 
-说明：当前已确认阶段 1 默认 `AI_PROVIDER=mock`，聊天模型字段统一为 `AI_CHAT_MODEL`。OpenAI-compatible 作为真实 Provider 的协议形态，待 mock/stub Provider 和错误分支测试稳定后接入。
+说明：当前已确认阶段 1 默认 `AI_PROVIDER=mock`，聊天模型字段统一为 `AI_CHAT_MODEL`。`ai-chat-api` 已落地应用层 Provider 抽象和本地 `mock` Provider，OpenAI-compatible 作为真实 Provider 的协议形态，待真实模型服务、数据边界、超时和错误映射确认后接入。
 
 ## P1：阶段内需要处理
 

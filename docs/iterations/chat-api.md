@@ -61,6 +61,9 @@
 ## 当前实现决策
 
 - Provider 抽象使用项目自己的应用层接口，Controller 只依赖应用服务，不直接依赖具体模型 SDK。
+- `ai-chat-api` Java 根包使用 `io.github.itstarts.aialab.chat`，Maven `groupId` 使用 `io.github.itstarts.aialab`。
+- HTTP 请求、响应和错误 DTO 放在 `api.dto`；Provider 公共契约放在 `provider`，配置放在 `provider.config`，异常分类放在 `provider.error`，mock 实现放在 `provider.mock`。
+- 公共 Provider 契约 DTO 使用 `ProviderChatRequest` / `ProviderChatResponse`；后续具体厂商请求响应类放入对应 Provider 子包，例如 `provider.openai.dto`。
 - 当前阶段默认 Provider 为 `mock`，用于本地开发和 CI 稳定测试。
 - `AI_PROVIDER` 表示供应商或适配器标识，例如 `mock`、`openai`、`ollama`，不使用泛化的协议名表达具体供应商。
 - 聊天模型环境变量统一使用 `AI_CHAT_MODEL`。

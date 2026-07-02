@@ -298,17 +298,24 @@ Spring Boot 默认不会自动读取仓库根目录的 `.env` 文件。当前阶
 
 ## 9. 错误处理
 
-阶段 1 至少定义这些错误码：
+当前 `ai-chat-api` 已实现这些错误码：
 
 | 错误码 | HTTP 状态 | 场景 |
 |---|---:|---|
-| `AI_PROVIDER_NOT_CONFIGURED` | 503 | 模型配置缺失或当前环境未启用真实 Provider |
+| `AI_PROVIDER_NOT_FOUND` | 503 | 当前配置的 Provider 未实现或未启用 |
+| `AI_MODEL_NOT_CONFIGURED` | 503 | 聊天模型名称缺失 |
+| `AI_PROVIDER_ERROR` | 502 | 模型服务返回错误 |
+| `CHAT_MESSAGE_INVALID` | 400 | 用户输入为空或过长 |
+| `INTERNAL_SERVER_ERROR` | 500 | 服务端未预期异常 |
+
+真实 Provider 接入后，再补齐这些模型服务错误映射：
+
+| 错误码 | HTTP 状态 | 场景 |
+|---|---:|---|
 | `AI_REQUEST_TIMEOUT` | 504 | 模型调用超时 |
 | `AI_RATE_LIMITED` | 429 | 模型服务限流 |
 | `AI_EMPTY_RESPONSE` | 502 | 模型返回空内容 |
-| `AI_PROVIDER_ERROR` | 502 | 模型服务返回错误 |
 | `CHAT_CONTEXT_TOO_LONG` | 400 | 上下文超过预算 |
-| `CHAT_MESSAGE_INVALID` | 400 | 用户输入为空或过长 |
 
 HTTP 响应保持业务可读：
 

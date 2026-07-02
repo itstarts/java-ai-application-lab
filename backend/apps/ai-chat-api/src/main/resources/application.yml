@@ -1,0 +1,4 @@
+ai:
+  provider: ${AI_PROVIDER:mock}
+  chat-model: ${AI_CHAT_MODEL:mock-chat}
+  request-timeout: ${AI_REQUEST_TIMEOUT:30s}

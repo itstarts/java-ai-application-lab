@@ -1,9 +1,11 @@
-package com.sd.aialab.chat;
+package io.github.itstarts.aialab.chat;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class AiChatApiApplication {
 
     public static void main(String[] args) {

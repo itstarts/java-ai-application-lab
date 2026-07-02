@@ -156,6 +156,8 @@ curl -X POST http://localhost:8080/api/chat \
   -d '{"message":"hello"}'
 ```
 
+当前默认 `mock` Provider 返回本地 echo 响应，响应包含 `provider`、`model`、`content` 和 `traceId`，不调用外部模型。
+
 ## 环境变量
 
 复制 `.env.example` 到 `.env` 后再填写本地密钥：
@@ -164,9 +166,9 @@ curl -X POST http://localhost:8080/api/chat \
 cp .env.example .env
 ```
 
-`.env` 只保留在本地，不提交到版本库。当前阶段只用 `.env.example` 统一后续模型配置的命名约定。Spring Boot 默认不会自动读取仓库根目录的 `.env` 文件；后续接入 Provider 配置时，可由本地 shell、IDE 运行配置、容器环境或显式配置加载机制把 `.env` 中的值注入为环境变量。
+`.env` 只保留在本地，不提交到版本库。当前阶段只用 `.env.example` 统一后续模型配置的命名约定。Spring Boot 默认不会自动读取仓库根目录的 `.env` 文件；可由本地 shell、IDE 运行配置、容器环境或后续显式配置加载机制把 `.env` 中的值注入为环境变量。
 
-当前阶段默认使用 `AI_PROVIDER=mock`，聊天模型字段统一为 `AI_CHAT_MODEL`，模型请求超时字段统一为 `AI_REQUEST_TIMEOUT`。`AI_PROVIDER` 表示供应商或适配器标识，例如 `mock`、`openai`、`ollama`；OpenAI-compatible 是协议形态，不直接作为默认 Provider 值。`SERVER_PORT` 使用 Spring Boot 约定配置服务端口。真实模型调用会产生费用和数据外发风险，应在 mock/stub Provider、配置缺失和错误映射测试通过后再启用。
+当前阶段默认使用 `AI_PROVIDER=mock` 和 `AI_CHAT_MODEL=mock-chat`，聊天模型字段统一为 `AI_CHAT_MODEL`，模型请求超时字段统一为 `AI_REQUEST_TIMEOUT`。`AI_PROVIDER` 表示供应商或适配器标识，例如 `mock`、`openai`、`ollama`；OpenAI-compatible 是协议形态，不直接作为默认 Provider 值。`SERVER_PORT` 使用 Spring Boot 约定配置服务端口。真实模型调用会产生费用和数据外发风险，应在 mock/stub Provider、配置缺失和错误映射测试通过后再启用。
 
 ### Codex worktree 准备
 

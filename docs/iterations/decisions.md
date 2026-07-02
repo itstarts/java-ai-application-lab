@@ -53,6 +53,16 @@
 - `AI_PROVIDER` 使用具体供应商或适配器标识，避免把 OpenAI-compatible 协议形态误当成具体 Provider。
 - 保留 Spring AI 接入空间，同时避免当前阶段过早引入框架依赖和版本选择成本。
 
+## 2026-07-02：Java 包名和 Provider 包结构
+
+决策：个人学习项目的 Maven `groupId` 使用 `io.github.itstarts.aialab`，`ai-chat-api` Java 根包使用 `io.github.itstarts.aialab.chat`。Provider 相关代码按应用层契约、配置、错误和具体实现分包；公共契约 DTO 命名为 `ProviderChatRequest` / `ProviderChatResponse`，具体厂商请求响应类放入对应 Provider 子包。
+
+原因：
+
+- `io.github.itstarts` 能表达个人 GitHub 命名空间，`aialab` 保留当前学习仓库的项目域。
+- 应用层 Provider 契约需要和具体厂商协议 DTO 分开，后续新增 OpenAI、Ollama 等 Provider 时不混淆。
+- Controller 只保留 HTTP 调度逻辑，API DTO 独立放置后更适合作为对外契约演进。
+
 ## 2026-06-29：仓库文档作为工程权威来源
 
 决策：`java-ai-application-lab` 仓库内的 `docs/` 是工程文档权威来源；个人知识库或飞书中的副本只用于阅读和导入。
