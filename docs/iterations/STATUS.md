@@ -50,7 +50,7 @@
   - `MockChatProvider` 默认返回本地 echo 响应，不调用外部模型。
   - `application.yml` 通过 `AI_PROVIDER`、`AI_CHAT_MODEL`、`AI_REQUEST_TIMEOUT` 读取模型配置，默认 `mock` / `mock-chat`。
   - Provider 未找到返回 `AI_PROVIDER_NOT_FOUND`，模型名缺失返回 `AI_MODEL_NOT_CONFIGURED`，Provider 错误映射为 `AI_PROVIDER_ERROR`。
-  - Provider 异常可携带错误分类，已预留 `AI_REQUEST_TIMEOUT`、`AI_RATE_LIMITED`、`AI_EMPTY_RESPONSE` 的应用层错误映射。
+  - Provider 异常可携带错误分类，已覆盖 `AI_REQUEST_TIMEOUT`、`AI_RATE_LIMITED`、`AI_EMPTY_RESPONSE` 的应用层错误映射。
   - `backend/pom.xml` 统一提供 Lombok、Apache Commons Lang 和 Spring Boot configuration processor 等通用依赖，当前模块继承使用。
 - 已在 `AGENTS.md` 增加通用 Git 协作规则：Agent 可以建议提交或推送时机，执行 `commit`、`push`、`tag`、`release` 仍需用户明确指令。
 - 已在 `AGENTS.md` 补充学习仓库的 PR/MR 使用边界：多数阶段 checkpoint 可直接提交到 `main` 并打 tag，远端评审、跨模块、数据模型或高回滚成本变更再建议开发分支和合并请求。
@@ -166,6 +166,36 @@ Tests run: 25, Failures: 0, Errors: 0, Skipped: 0
 
 本次验证包含 Maven 坐标改为 `io.github.itstarts.aialab`、Java 根包改为 `io.github.itstarts.aialab.chat`、API DTO 拆分和 Provider 分包整理后的编译与测试运行。
 
+2026-07-02 `ai-chat-api` Provider 错误映射补充分支验证：
+
+```bash
+cd backend
+./mvnw test
+```
+
+结果：
+
+```text
+BUILD SUCCESS
+Tests run: 27, Failures: 0, Errors: 0, Skipped: 0
+```
+
+本次验证补齐 `AI_RATE_LIMITED` 和 `AI_EMPTY_RESPONSE` 的 mock Provider 触发分支，并通过 `POST /api/chat` 覆盖统一错误响应结构、HTTP 状态和 `traceId`。
+
+文档和空白检查：
+
+```bash
+git diff --check
+```
+
+结果：无输出。
+
+独立评审：
+
+- Codex 子代理 Wegener 基于最新代码 diff 完成只读评审。
+- 评审结论：Ready to merge? Yes；Critical、Important、Minor 问题均为 0。
+- 评审确认本次变更未接入真实模型、未引入 Spring AI，保持 Provider 抽象边界和日志脱敏路径。
+
 ## 尚未完成
 
 - 尚未接入真实模型 Provider。
@@ -182,8 +212,8 @@ Tests run: 25, Failures: 0, Errors: 0, Skipped: 0
 
 下一步建议：
 
-1. 接入真实 Provider 前，为 `AI_RATE_LIMITED`、`AI_EMPTY_RESPONSE` 补齐 mock 或 Provider 单元测试分支；`AI_REQUEST_TIMEOUT` 已有应用层映射测试。
-2. 明确真实模型服务、数据边界、超时和错误映射后，再实现 OpenAI-compatible Provider。
+1. 明确真实模型服务、数据边界、超时和错误映射后，再实现 OpenAI-compatible Provider。
+2. 真实 Provider 接入后，在 `README.md` 补充最小可运行配置示例。
 3. 继续保持当前阶段不引入 Spring AI；后续引入时作为 Provider 实现或增强项接入。
 
 ## 当前风险

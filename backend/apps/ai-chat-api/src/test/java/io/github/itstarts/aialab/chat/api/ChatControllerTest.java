@@ -157,4 +157,26 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.message").value("模型服务返回错误，请稍后重试"))
                 .andExpect(jsonPath("$.traceId", startsWith("trace_")));
     }
+
+    @Test
+    void chatMapsProviderRateLimitToUnifiedErrorResponse() throws Exception {
+        mockMvc.perform(post("/api/chat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"" + MockChatProvider.SIMULATED_RATE_LIMITED_MESSAGE + "\"}"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("AI_RATE_LIMITED"))
+                .andExpect(jsonPath("$.message").value("模型服务请求过于频繁，请稍后重试"))
+                .andExpect(jsonPath("$.traceId", startsWith("trace_")));
+    }
+
+    @Test
+    void chatMapsProviderEmptyResponseToUnifiedErrorResponse() throws Exception {
+        mockMvc.perform(post("/api/chat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"" + MockChatProvider.SIMULATED_EMPTY_RESPONSE_MESSAGE + "\"}"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code").value("AI_EMPTY_RESPONSE"))
+                .andExpect(jsonPath("$.message").value("模型服务返回空结果"))
+                .andExpect(jsonPath("$.traceId", startsWith("trace_")));
+    }
 }
