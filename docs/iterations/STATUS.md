@@ -41,6 +41,8 @@
   - 默认 `AI_PROVIDER=mock`，聊天模型环境变量统一使用 `AI_CHAT_MODEL`。
   - 真实模型调用在 mock/stub Provider、配置缺失和错误映射测试稳定后再接入。
 - 已在 `AGENTS.md` 增加通用 Git 协作规则：Agent 可以建议提交或推送时机，执行 `commit`、`push`、`tag`、`release` 仍需用户明确指令。
+- 已在 `AGENTS.md` 补充学习仓库的 PR/MR 使用边界：多数阶段 checkpoint 可直接提交到 `main` 并打 tag，远端评审、跨模块、数据模型或高回滚成本变更再建议开发分支和合并请求。
+- 已重写 `AGENTS.md` 的 `Git 协作` 小节，明确本仓库以 `main + 阶段 tag` 为主策略，并补充阶段 tag 建议和跨 Agent 接手阅读要求。
 
 ## 验证记录
 
@@ -59,8 +61,8 @@ backend/scripts/setup-toolchains.sh
 结果：
 
 ```text
-已更新 /Users/zyy/.m2/toolchains.xml
-JDK 21 Home：/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+已更新本机 ~/.m2/toolchains.xml
+已检测到 JDK 21 安装路径
 ```
 
 再运行测试：
@@ -77,7 +79,7 @@ BUILD SUCCESS
 Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
 ```
 
-测试运行在 JDK 21，由日志 `Starting ChatControllerTest using Java 21.0.11` 和 `Toolchain in maven-surefire-plugin: JDK[/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home]` 确认。
+测试运行在 JDK 21，由日志 `Starting ChatControllerTest using Java 21.0.11` 和 `Toolchain in maven-surefire-plugin` 确认；具体 JDK 安装路径因本机环境而异，不写入状态文档。
 
 2026-07-02 文档检查：
 
@@ -86,6 +88,11 @@ git diff --check
 ```
 
 结果：无输出。
+
+2026-07-02 `AGENTS.md` Git 协作规则复审：
+
+- Claude 最终复审结论：P0/P1/P2/P3 问题均为 0。
+- 已确认 `AGENTS.md`、`README.md` 的 `main + 阶段 tag` 策略和跨 Agent 接手规则自洽。
 
 ## 尚未完成
 
